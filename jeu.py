@@ -264,16 +264,17 @@ while running:
                     grid_x, grid_y = x // tile_size, y // tile_size
                     if event.button == 1:  # Clic gauche pour sélectionner
                         possible_units = [u for u in units if u.x == grid_x and u.y == grid_y and not u.moved and u.color == (PLAYER_COLOR if player_turn else ENEMY_COLOR)]
-                        if selected_unit:
-                            if possible_units:
-                                current_index = possible_units.index(selected_unit)
-                                selected_unit.selected = False
-                                selected_unit = possible_units[(current_index + 1) % len(possible_units)]
-                                selected_unit.selected = True
+                        if selected_unit in possible_units:
+                            current_index = possible_units.index(selected_unit)
+                            selected_unit.selected = False
+                            selected_unit = possible_units[(current_index + 1) % len(possible_units)]
                         else:
+                            if selected_unit:
+                                selected_unit.selected = False
                             if possible_units:
                                 selected_unit = possible_units[0]
-                                selected_unit.selected = True
+                        if selected_unit:
+                            selected_unit.selected = True
                     elif event.button == 3:  # Clic droit pour déplacer ou attaquer
                         if selected_unit and selected_unit.color == (PLAYER_COLOR if player_turn else ENEMY_COLOR):
                             target_unit = [u for u in units if u.x == grid_x and u.y == grid_y and u.color != selected_unit.color]
