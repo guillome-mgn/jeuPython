@@ -6,7 +6,7 @@ pygame.init()
 
 # Dimensions de la fenêtre et de la carte
 tile_size = 30
-size = 20
+size = 7
 width, height = size * tile_size, size * tile_size
 interface_height = 150  # Hauteur supplémentaire pour l'interface
 
@@ -87,7 +87,7 @@ class Unit:
                         target_unit.move(new_x, new_y)
             else:
                 if 0 <= new_x < size and 0 <= new_y < size:
-                    if any(u.x == new_x and u.y == new_y and u.color != target_unit.color for u in units) or any(obj['x'] == new_x and obj['y'] == new_y for obj in objectives):
+                    if any(u.x == new_x and u.y == new_y and u.color != target_unit.color for u in units): #or any(obj['x'] == new_x and obj['y'] == new_y for obj in objectives)
                         units.remove(target_unit)
                     else:
                         target_unit.move(new_x, new_y)
@@ -311,7 +311,6 @@ while running:
                 victory_message = "Victoire Joueur!"
 
             pygame.display.flip()
-            pygame.time.wait(2000)
 
     screen.fill((0, 0, 0))
     draw_map(screen, game_map, tile_size)
@@ -328,7 +327,7 @@ while running:
     if victory:
         draw_victory_message(screen, victory_message, width, height)
         pygame.display.flip()
-        pygame.time.wait(3000)
+        pygame.time.wait(5000)
         running = False
 
     pygame.display.flip()
