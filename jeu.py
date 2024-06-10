@@ -7,8 +7,8 @@ pygame.init()
 # Dimensions de la fenêtre et de la carte
 tile_size = 30
 size = 7
-width, height = size * tile_size, size * tile_size
-interface_height = 150  # Hauteur supplémentaire pour l'interface
+width, height = size * tile_size +300, size * tile_size
+interface_height = 100  # Hauteur supplémentaire pour l'interface
 
 # Couleurs
 PASSABLE_COLOR = (200, 200, 200)        # Gris clair pour les cases passables
@@ -76,22 +76,15 @@ class Unit:
 
             if target_unit.attacked_this_turn:
                 target_unit.pv -= 1
-                target_unit.attacked_this_turn = False
                 if target_unit.pv <= 0:
                     units.remove(target_unit)
                     return
-                elif 0 <= new_x < size and 0 <= new_y < size:
-                    if any(u.x == new_x and u.y == new_y and u.color != target_unit.color for u in units) or any(obj['x'] == new_x and obj['y'] == new_y and obj['type'] == 'MAJOR' for obj in objectives):
-                        units.remove(target_unit)
-                    else:
-                        target_unit.move(new_x, new_y)
+
+            if not (0 <= new_x < size and 0 <= new_y < size) or any(u.x == new_x and u.y == new_y and u.color != target_unit.color for u in units):
+                units.remove(target_unit)
             else:
-                if 0 <= new_x < size and 0 <= new_y < size:
-                    if any(u.x == new_x and u.y == new_y and u.color != target_unit.color for u in units): #or any(obj['x'] == new_x and obj['y'] == new_y for obj in objectives)
-                        units.remove(target_unit)
-                    else:
-                        target_unit.move(new_x, new_y)
-                        target_unit.attacked_this_turn = True
+                target_unit.move(new_x, new_y)
+                target_unit.attacked_this_turn = True
 
     def get_symbols_on_same_tile(self, units):
         """Retourne les symboles des unités sur la même case."""
@@ -254,6 +247,9 @@ while running:
     if not victory:
         unit_moved = False
         for event in pygame.event.get():
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    unit_moved = True
             if event.type == pygame.QUIT:
                 running = False
             elif event.type == pygame.MOUSEBUTTONDOWN:
@@ -279,7 +275,7 @@ while running:
                         if selected_unit and selected_unit.color == (PLAYER_COLOR if player_turn else ENEMY_COLOR):
                             target_unit = [u for u in units if u.x == grid_x and u.y == grid_y and u.color != selected_unit.color]
                             
-                            for cible in target_unit:                                
+                            for cible in target_unit:
                                 selected_unit.attack(cible, units, objectives)
                                 
                             if selected_unit.can_move(grid_x, grid_y):
