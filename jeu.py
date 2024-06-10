@@ -6,8 +6,8 @@ pygame.init()
 
 # Dimensions de la fenêtre et de la carte
 tile_size = 30
-size = 7
-width, height = size * tile_size +300, size * tile_size
+size = 20
+width, height = size * tile_size, size * tile_size
 interface_height = 100  # Hauteur supplémentaire pour l'interface
 
 # Couleurs
@@ -98,13 +98,14 @@ class Unit:
 # Générer la carte
 def generate_map(size):
     """Génère une carte de taille spécifiée."""
+    print([[1 for _ in range(size)] for _ in range(size)])
     return [[1 for _ in range(size)] for _ in range(size)]
 
 # Afficher la carte
 def draw_map(screen, game_map, tile_size):
     """Affiche la carte."""
-    for y in range(len(game_map)):
-        for x in range(len(game_map[y])):
+    for y in range(size):
+        for x in range(size):
             color = PASSABLE_COLOR
             pygame.draw.rect(screen, color, (x * tile_size, y * tile_size, tile_size, tile_size))
 
@@ -115,8 +116,8 @@ def generate_units():
     player_positions = [(0, i) for i in range(size)]
     enemy_positions = [(size - 1, i) for i in range(size)]
 
-    player_positions = random.sample(player_positions, 7)
-    enemy_positions = random.sample(enemy_positions, 7)
+    player_positions = random.sample(player_positions, 5)
+    enemy_positions = random.sample(enemy_positions, 5)
 
     player_units = [Unit(*pos, PLAYER_COLOR) for pos in player_positions]
     enemy_units = [Unit(*pos, ENEMY_COLOR) for pos in enemy_positions]
@@ -271,6 +272,7 @@ while running:
                                 selected_unit = possible_units[0]
                         if selected_unit:
                             selected_unit.selected = True
+
                     elif event.button == 3:  # Clic droit pour déplacer ou attaquer
                         if selected_unit and selected_unit.color == (PLAYER_COLOR if player_turn else ENEMY_COLOR):
                             target_unit = [u for u in units if u.x == grid_x and u.y == grid_y and u.color != selected_unit.color]
