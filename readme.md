@@ -1,1 +1,4 @@
-Base sur laquelle les étudiants vont tenter de créer une IA pour battre le joueur
+Méthode principale :  recherche gloutonne
+Stratégie : Sélection du meilleur coup immédiat
+Limite : Ne prévoit pas plusieurs tours à l'avance
+Type d'approche : Tâtonnement avec évaluation locale des options
