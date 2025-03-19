@@ -1,24 +1,28 @@
 import pygame
 import random
+import copy
+from constants import *
+from ia import *
 
 # Initialisation de pygame
 pygame.init()
 
-# Dimensions de la fenêtre et de la carte
-tile_size = 30
-size = 20
-width, height = size * tile_size, size * tile_size
-interface_height = 100  # Hauteur supplémentaire pour l'interface
+# Classe qui stocke une action passée par un joueur
+previous_actions = []
+class Action:
+    def __init__(self, units, objectives, score):
+        self.units = units
+        self.objectives = objectives
+        self.score = score
 
-# Couleurs
-PASSABLE_COLOR = (200, 200, 200)        # Gris clair pour les cases passables
-PLAYER_COLOR = (0, 0, 255)              # Bleu pour le joueur
-PLAYER_COLOR_LIGHT = (100, 100, 255)    # Bleu clair pour le joueur capable de bouger
-ENEMY_COLOR = (255, 0, 0)               # Rouge pour les ennemis
-ENEMY_COLOR_LIGHT = (255, 100, 100)     # Rouge clair pour les ennemis capables de bouger
-SELECTED_COLOR = (0, 255, 0)            # Vert pour la sélection
-OBJECTIVE_MAJOR_COLOR = (255, 255, 0)   # Jaune pour objectif majeur
-OBJECTIVE_MINOR_COLOR = (255, 215, 0)   # Doré pour objectif mineur
+    def get_units(self):
+        return self.units
+    
+    def get_objectives(self):
+        return self.objectives
+    
+    def get_score(self):
+        return self.score
 
 # Classe pour les unités
 class Unit:
@@ -135,14 +139,14 @@ def add_objectives():
     while True:
         x, y = random.randint(center_x - 3, center_x + 3), random.randint(center_y - 3, center_y + 3)
         if not any(obj['x'] == x and obj['y'] == y for obj in objectives):
-            objectives.append({'x': x, 'y': y, 'type': 'MAJOR'})
+            objectives.append({'x': x, 'y': y, 'type': 'MAJOR', 'enemyOnObjective': False})
             break
 
     for _ in range(3):
         while True:
             x, y = random.randint(center_x - 5, center_x + 5), random.randint(center_y - 5, center_y + 5)
             if not any(obj['x'] == x and obj['y'] == y for obj in objectives):
-                objectives.append({'x': x, 'y': y, 'type': 'MINOR'})
+                objectives.append({'x': x, 'y': y, 'type': 'MINOR', 'enemyOnObjective': False})
                 break
 
     return objectives
@@ -174,7 +178,7 @@ def draw_turn_indicator(screen, player_turn):
     font = pygame.font.SysFont(None, 36)
     text = "Joueur" if player_turn else "Ennemi"
     img = font.render(text, True, (255, 255, 255))
-    screen.blit(img, (10, 10))
+    screen.blit(img, (250, 20)) # l'indicateur de tour est centré 
 
 # Afficher le bouton de changement de tour
 def draw_end_turn_button(screen, width, height, interface_height):
@@ -182,8 +186,8 @@ def draw_end_turn_button(screen, width, height, interface_height):
     font = pygame.font.SysFont(None, 36)
     text = font.render("Terminé", True, (255, 255, 255))
     button_rect = pygame.Rect(width // 2 - 50, height, 100, interface_height - 10)
-    pygame.draw.rect(screen, (100, 100, 100), button_rect)
-    screen.blit(text, (width // 2 - 50 + 10, height + 10))
+    pygame.draw.rect(screen, (0, 100, 0), button_rect) # La couleur du button est vert pour une meilleure fluidité
+    screen.blit(text, (width // 2 - 50 + 5, height + 10)) # le rectangle du button est centré pour que "Terminé" soit au centre
 
 # Vérifier si le bouton de changement de tour est cliqué
 def end_turn_button_clicked(mouse_pos, width, height, interface_height):
@@ -223,7 +227,7 @@ def draw_victory_message(screen, message, width, height):
 
 # Configuration de la fenêtre
 screen = pygame.display.set_mode((width, height + interface_height))
-pygame.display.set_caption("Carte de 20x20 avec unités et déplacement")
+pygame.display.set_caption("Jeu de stratégie en 2D🎯")
 
 # Générer une carte de 20 par 20
 game_map = generate_map(size)
@@ -290,15 +294,22 @@ while running:
                 unit.moved = False  # Réinitialiser l'indicateur de mouvement
                 unit.attacked_this_turn = False  # Réinitialiser l'indicateur d'attaque
             player_turn = not player_turn
+
+            # Si le tour passe à l'IA, elle joue automatiquement
+            if not player_turn:
+                ia(units, objectives, previous_actions)
+                # Après le tour de l'IA, passer le tour au joueur
+                player_turn = not player_turn
+
             units_to_move = [unit for unit in units if (unit.color == PLAYER_COLOR if player_turn else unit.color == ENEMY_COLOR)]
             player_score_turn, enemy_score_turn = calculate_scores(units, objectives)
             player_score += player_score_turn
             enemy_score += enemy_score_turn
 
-            if player_score >= 50:
+            if player_score >= 500:
                 victory = True
                 victory_message = "Victoire Joueur!"
-            elif enemy_score >= 50:
+            elif enemy_score >= 500:
                 victory = True
                 victory_message = "Victoire Ennemi!"
             elif not any(unit.color == PLAYER_COLOR for unit in units):
@@ -307,7 +318,11 @@ while running:
             elif not any(unit.color == ENEMY_COLOR for unit in units):
                 victory = True
                 victory_message = "Victoire Joueur!"
-
+            
+            # Sauprevious_actionsvegarde de l'état du jeu pour l'IA
+            previous_actions.append(Action(copy.deepcopy(units), copy.deepcopy(objectives), copy.deepcopy(player_score)))
+            if previous_actions.__len__() > 5:
+                previous_actions.pop(0)
             pygame.display.flip()
 
     screen.fill((0, 0, 0))
